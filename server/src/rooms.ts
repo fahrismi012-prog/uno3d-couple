@@ -76,6 +76,14 @@ export function joinRoom(
   return { room, playerId: id };
 }
 
+/** Pemain keluar permanen: hapus dari room, batalkan game yang berjalan */
+export function leaveRoom(room: Room, playerId: string): void {
+  room.players = room.players.filter((p) => p.id !== playerId);
+  delete room.wins[playerId];
+  room.game = null; // game 1 lawan 1 tidak bisa lanjut tanpa lawan
+  if (room.players.length === 0) rooms.delete(room.code);
+}
+
 export function deleteRoomIfEmpty(room: Room): void {
   if (room.players.every((p) => p.socketId === null) && room.game === null) {
     rooms.delete(room.code);

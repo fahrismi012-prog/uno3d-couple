@@ -65,6 +65,7 @@ export interface ClientToServerEvents {
   catchUno: (cb: (ack: ActionAck) => void) => void;
   chat: (text: string) => void;
   voiceCreds: (cb: (ack: VoiceCredsAck) => void) => void;
+  leaveRoom: (cb: (ack: ActionAck) => void) => void;
 }
 
 export interface ServerToClientEvents {

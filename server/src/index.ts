@@ -19,6 +19,7 @@ import {
   deleteRoomIfEmpty,
   getRoom,
   joinRoom,
+  leaveRoom,
   startGame,
   viewFor,
 } from './rooms.js';
@@ -147,6 +148,20 @@ io.on('connection', (rawSocket) => {
       text: clean,
       at: Date.now(),
     });
+  });
+
+  socket.on('leaveRoom', (cb) => {
+    const c = ctx(socket);
+    if (!c) return cb({ ok: false, error: 'Belum join room' });
+    leaveRoom(c.room, c.playerId);
+    socket.leave(c.room.code);
+    socket.data.roomCode = null;
+    socket.data.playerId = null;
+    for (const p of c.room.players) {
+      if (p.socketId) io.to(p.socketId).emit('opponentLeft');
+    }
+    broadcastState(c.room);
+    cb({ ok: true });
   });
 
   socket.on('voiceCreds', (cb) => {

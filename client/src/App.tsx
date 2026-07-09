@@ -107,6 +107,16 @@ export default function App() {
     setPendingWild(null);
   };
 
+  const leaveRoom = () => {
+    if (!confirm('Keluar dari room ini? Skor room akan hilang.')) return;
+    socket.emit('leaveRoom', () => {});
+    voice.leave();
+    clearSession();
+    setView(null);
+    setChat([]);
+    setError('');
+  };
+
   const sendChat = () => {
     if (!chatInput.trim()) return;
     socket.emit('chat', chatInput);
@@ -153,6 +163,7 @@ export default function App() {
         <span className="room-code">Room: <b>{view.roomCode}</b></span>
         <VoiceButton voice={voice} />
         <span>{connected ? '🟢' : '🔴'}</span>
+        <button className="btn-leave" onClick={leaveRoom} title="Keluar room">🚪</button>
       </header>
 
       {view.phase === 'lobby' && (

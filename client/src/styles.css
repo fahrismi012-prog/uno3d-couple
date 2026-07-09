@@ -112,3 +112,4 @@ header { display: flex; justify-content: space-between; align-items: center; }
 .score { font-size: 13px; opacity: 0.95; }
 .emoji-row { justify-content: center; }
 .btn-emoji { background: transparent; font-size: 20px; padding: 2px 8px; }
+.btn-leave { background: rgba(255,255,255,0.15); font-size: 16px; padding: 5px 9px; }

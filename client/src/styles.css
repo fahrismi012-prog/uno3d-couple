@@ -1,0 +1,119 @@
+* { box-sizing: border-box; margin: 0; }
+body {
+  font-family: system-ui, sans-serif;
+  background: #1b5e20;
+  color: #fff;
+  min-height: 100vh;
+}
+input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  width: 100%;
+}
+button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  background: #eee;
+}
+button:disabled { opacity: 0.45; cursor: default; }
+.btn-primary { background: #ff4081; color: #fff; font-weight: bold; }
+.btn-uno { background: #fdd835; font-weight: bold; }
+.error { color: #ffab91; }
+.ok { color: #a5d6a7; }
+.warn { color: #ffe082; }
+.row { display: flex; gap: 8px; width: 100%; }
+
+.lobby {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 48px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+}
+
+.game {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 8px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 100vh;
+}
+header { display: flex; justify-content: space-between; align-items: center; }
+.room-code { font-size: 14px; opacity: 0.9; }
+.center-panel { text-align: center; padding: 40px 0; display: flex; flex-direction: column; gap: 14px; }
+
+.opponent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.25);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.table { display: flex; justify-content: center; gap: 24px; padding: 12px 0; }
+.pile { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.pile-label { font-size: 12px; opacity: 0.8; }
+.color-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; }
+
+.card {
+  width: 56px;
+  height: 84px;
+  border-radius: 10px;
+  border: 3px solid #fff;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.card-back { background: #37474f; font-size: 16px; }
+.card-highlight { outline: 3px solid #fdd835; }
+
+.turn { text-align: center; font-size: 15px; min-height: 22px; }
+
+.hand {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 2px;
+  -webkit-overflow-scrolling: touch;
+}
+.actions { display: flex; justify-content: center; gap: 10px; min-height: 40px; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.modal-box { background: #263238; padding: 20px; border-radius: 14px; text-align: center; }
+.color-picker { display: flex; gap: 12px; margin-top: 12px; }
+.color-btn { width: 52px; height: 52px; border-radius: 50%; border: 3px solid #fff; }
+
+.chat {
+  margin-top: auto;
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chat-log { max-height: 110px; overflow-y: auto; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.msg.mine { color: #f8bbd0; }

@@ -82,7 +82,11 @@ function applyAction(
   if (!c || !c.room.game) return cb({ ok: false, error: 'Belum ada permainan' });
   const result = action(c.playerId, c.room);
   if (!result.ok) return cb({ ok: false, error: result.error });
+  const justFinished = c.room.game.phase === 'playing' && result.state.phase === 'finished';
   c.room.game = result.state;
+  if (justFinished && result.state.winner) {
+    c.room.wins[result.state.winner] = (c.room.wins[result.state.winner] ?? 0) + 1;
+  }
   broadcastState(c.room);
   cb({ ok: true });
 }

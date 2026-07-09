@@ -18,6 +18,7 @@ export interface Room {
   code: string;
   players: RoomPlayer[];
   game: GameState | null;
+  wins: Record<string, number>;
   createdAt: number;
 }
 
@@ -40,6 +41,7 @@ export function createRoom(nickname: string): { room: Room; playerId: string } {
     code,
     players: [{ id: playerId, nickname, socketId: null }],
     game: null,
+    wins: { [playerId]: 0 },
     createdAt: Date.now(),
   };
   rooms.set(code, room);
@@ -70,6 +72,7 @@ export function joinRoom(
 
   const id = randomUUID();
   room.players.push({ id, nickname, socketId: null });
+  room.wins[id] = 0;
   return { room, playerId: id };
 }
 
@@ -114,6 +117,7 @@ export function viewFor(room: Room, playerId: string): PlayerView {
       unoSaid: {},
       phase: 'lobby',
       winner: null,
+      wins: room.wins,
     };
   }
 
@@ -132,5 +136,6 @@ export function viewFor(room: Room, playerId: string): PlayerView {
     unoSaid: g.unoSaid,
     phase: g.phase,
     winner: g.winner,
+    wins: room.wins,
   };
 }

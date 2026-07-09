@@ -109,3 +109,6 @@ header { display: flex; justify-content: space-between; align-items: center; }
 }
 .chat-log { max-height: 110px; overflow-y: auto; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
 .msg.mine { color: #f8bbd0; }
+.score { font-size: 13px; opacity: 0.95; }
+.emoji-row { justify-content: center; }
+.btn-emoji { background: transparent; font-size: 20px; padding: 2px 8px; }

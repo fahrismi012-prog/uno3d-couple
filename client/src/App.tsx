@@ -3,6 +3,7 @@ import type { Card, ChatMessage, Color, PlayerView } from '@uno3d/shared';
 import { COLORS } from '@uno3d/shared';
 import { clearSession, saveSession, savedSession, socket } from './socket';
 import GameScene from './three/GameScene';
+import { snd } from './sounds';
 import { useVoice } from './voice/useVoice';
 import VoiceButton from './voice/VoiceButton';
 import './styles.css';
@@ -56,7 +57,26 @@ export default function App() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const last = chat[chat.length - 1];
+    if (last && view && last.from !== view.you) snd.chat();
   }, [chat]);
+
+  // efek suara berdasarkan perubahan state
+  const prev = useRef<PlayerView | null>(null);
+  useEffect(() => {
+    const p = prev.current;
+    prev.current = view;
+    if (!view || !p || view.phase === 'lobby') return;
+    if (p.phase === 'playing' && view.phase === 'finished') {
+      view.winner === view.you ? snd.win() : snd.lose();
+      return;
+    }
+    if (p.phase !== 'playing' || view.phase !== 'playing') return;
+    if (p.topCard?.id !== view.topCard?.id) snd.play();
+    else if (view.hand.length > p.hand.length) snd.draw();
+    if (view.opponentId && !p.unoSaid[view.opponentId] && view.unoSaid[view.opponentId]) snd.uno();
+    if (p.currentPlayer !== view.you && view.currentPlayer === view.you) snd.turn();
+  }, [view]);
 
   const ackHandler = (ack: { ok: boolean; error?: string }) => {
     setError(ack.ok ? '' : (ack.error ?? 'Gagal'));
@@ -151,6 +171,9 @@ export default function App() {
       {view.phase !== 'lobby' && (
         <>
           <div className="opponent">
+            <span className="score">
+              🏆 {view.nicknames[view.you]} {view.wins[view.you] ?? 0} — {view.opponentId ? (view.wins[view.opponentId] ?? 0) : 0} {oppName}
+            </span>
             <span>{oppName ?? 'Lawan'} — {view.opponentCount} kartu
               {view.opponentId && view.unoSaid[view.opponentId] ? ' · UNO!' : ''}
             </span>
@@ -223,6 +246,11 @@ export default function App() {
             </div>
           ))}
           <div ref={chatEndRef} />
+        </div>
+        <div className="row emoji-row">
+          {['❤️', '😂', '😱', '😡', '😘'].map((e) => (
+            <button key={e} className="btn-emoji" onClick={() => socket.emit('chat', e)}>{e}</button>
+          ))}
         </div>
         <div className="row">
           <input

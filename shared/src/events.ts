@@ -17,6 +17,8 @@ export interface PlayerView {
   unoSaid: Record<string, boolean>;
   phase: 'lobby' | 'playing' | 'finished';
   winner: string | null;
+  /** total kemenangan per pemain selama room hidup (lintas rematch) */
+  wins: Record<string, number>;
 }
 
 export interface ChatMessage {

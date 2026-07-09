@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Card, ChatMessage, Color, PlayerView } from '@uno3d/shared';
 import { COLORS } from '@uno3d/shared';
 import { clearSession, saveSession, savedSession, socket } from './socket';
+import GameScene from './three/GameScene';
 import './styles.css';
 
 const COLOR_HEX: Record<Color, string> = {
@@ -10,33 +11,6 @@ const COLOR_HEX: Record<Color, string> = {
   green: '#43a047',
   blue: '#1e88e5',
 };
-
-function cardLabel(c: Card): string {
-  switch (c.value) {
-    case 'skip': return '⊘';
-    case 'reverse': return '⇄';
-    case 'draw2': return '+2';
-    case 'wild': return 'W';
-    case 'wild4': return '+4';
-    default: return c.value;
-  }
-}
-
-function CardFace({ card, onClick, disabled, highlight }: {
-  card: Card; onClick?: () => void; disabled?: boolean; highlight?: boolean;
-}) {
-  const bg = card.color === 'wild' ? '#212121' : COLOR_HEX[card.color];
-  return (
-    <button
-      className={`card ${highlight ? 'card-highlight' : ''}`}
-      style={{ background: bg }}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {cardLabel(card)}
-    </button>
-  );
-}
 
 export default function App() {
   const [view, setView] = useState<PlayerView | null>(null);
@@ -181,46 +155,25 @@ export default function App() {
             )}
           </div>
 
-          <div className="table">
-            <div className="pile">
-              <button
-                className="card card-back"
-                onClick={() => socket.emit('drawCard', ackHandler)}
-                disabled={!myTurn || view.drawnCardId !== null}
-              >
-                {view.drawPileCount}
-              </button>
-              <span className="pile-label">Tarik</span>
-            </div>
-            {view.topCard && (
-              <div className="pile">
-                <CardFace card={view.topCard} disabled />
-                <span
-                  className="color-dot"
-                  style={{ background: view.currentColor ? COLOR_HEX[view.currentColor] : '#999' }}
-                />
-              </div>
-            )}
+          <div className="scene">
+            <GameScene
+              view={view}
+              myTurn={myTurn}
+              onPlay={play}
+              onDraw={() => socket.emit('drawCard', ackHandler)}
+            />
           </div>
 
           <p className="turn">
+            <span
+              className="color-dot"
+              style={{ background: view.currentColor ? COLOR_HEX[view.currentColor] : '#999' }}
+            />
             {view.phase === 'finished'
               ? (view.winner === view.you ? '🏆 KAMU MENANG! 🎉' : `${oppName} menang! 😤 Rematch?`)
-              : myTurn ? '✨ Giliranmu!' : `Giliran ${oppName}…`}
+              : myTurn ? '✨ Giliranmu! (tap kartu, atau tap dek untuk tarik)' : `Giliran ${oppName}…`}
             {error && <span className="error"> {error}</span>}
           </p>
-
-          <div className="hand">
-            {view.hand.map((c) => (
-              <CardFace
-                key={c.id}
-                card={c}
-                onClick={() => play(c)}
-                disabled={!myTurn || view.phase === 'finished'}
-                highlight={view.drawnCardId === c.id}
-              />
-            ))}
-          </div>
 
           <div className="actions">
             {view.drawnCardId !== null && (

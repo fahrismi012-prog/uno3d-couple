@@ -1,0 +1,8 @@
+{
+  "name": "uno3d-couple",
+  "private": true,
+  "workspaces": ["shared", "server", "client"],
+  "scripts": {
+    "test": "npm run test -w shared"
+  }
+}

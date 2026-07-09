@@ -3,6 +3,8 @@ import type { Card, ChatMessage, Color, PlayerView } from '@uno3d/shared';
 import { COLORS } from '@uno3d/shared';
 import { clearSession, saveSession, savedSession, socket } from './socket';
 import GameScene from './three/GameScene';
+import { useVoice } from './voice/useVoice';
+import VoiceButton from './voice/VoiceButton';
 import './styles.css';
 
 const COLOR_HEX: Record<Color, string> = {
@@ -22,6 +24,7 @@ export default function App() {
   const [chatInput, setChatInput] = useState('');
   const [connected, setConnected] = useState(socket.connected);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const voice = useVoice();
 
   useEffect(() => {
     socket.on('state', setView);
@@ -128,6 +131,7 @@ export default function App() {
     <div className="game">
       <header>
         <span className="room-code">Room: <b>{view.roomCode}</b></span>
+        <VoiceButton voice={voice} />
         <span>{connected ? '🟢' : '🔴'}</span>
       </header>
 

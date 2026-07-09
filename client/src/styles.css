@@ -78,6 +78,11 @@ header { display: flex; justify-content: space-between; align-items: center; }
 }
 
 .turn { text-align: center; font-size: 15px; min-height: 22px; }
+
+.voice { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.btn-voice { padding: 5px 10px; font-size: 13px; background: rgba(255,255,255,0.9); }
+.voice-err { color: #ffab91; font-size: 12px; max-width: 180px; }
+.talking { filter: drop-shadow(0 0 6px #7CFC00); }
 .actions { display: flex; justify-content: center; gap: 10px; min-height: 40px; }
 
 .modal {

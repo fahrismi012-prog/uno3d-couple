@@ -22,6 +22,7 @@ import {
   startGame,
   viewFor,
 } from './rooms.js';
+import { trtcConfigured, trtcCredentials } from './trtc.js';
 
 const PORT = Number(process.env.PORT ?? 3001);
 
@@ -142,6 +143,15 @@ io.on('connection', (rawSocket) => {
       text: clean,
       at: Date.now(),
     });
+  });
+
+  socket.on('voiceCreds', (cb) => {
+    const c = ctx(socket);
+    if (!c) return cb({ ok: false, error: 'Belum join room' });
+    if (!trtcConfigured())
+      return cb({ ok: false, error: 'Voice belum dikonfigurasi di server' });
+    const { sdkAppId, userSig } = trtcCredentials(c.playerId);
+    cb({ ok: true, sdkAppId, userSig, userId: c.playerId, strRoomId: c.room.code });
   });
 
   socket.on('disconnect', () => {

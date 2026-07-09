@@ -38,6 +38,15 @@ export interface ActionAck {
   error?: string;
 }
 
+export interface VoiceCredsAck {
+  ok: boolean;
+  error?: string;
+  sdkAppId?: number;
+  userSig?: string;
+  userId?: string;
+  strRoomId?: string;
+}
+
 export interface ClientToServerEvents {
   createRoom: (nickname: string, cb: (ack: JoinAck) => void) => void;
   joinRoom: (
@@ -53,6 +62,7 @@ export interface ClientToServerEvents {
   sayUno: (cb: (ack: ActionAck) => void) => void;
   catchUno: (cb: (ack: ActionAck) => void) => void;
   chat: (text: string) => void;
+  voiceCreds: (cb: (ack: VoiceCredsAck) => void) => void;
 }
 
 export interface ServerToClientEvents {

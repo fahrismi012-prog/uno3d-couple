@@ -6,6 +6,7 @@ import {
   Color,
   PlayResult,
   ServerToClientEvents,
+  VoiceSignal,
   catchUno,
   drawCard,
   pass,
@@ -23,7 +24,6 @@ import {
   startGame,
   viewFor,
 } from './rooms.js';
-import { trtcConfigured, trtcCredentials } from './trtc.js';
 
 const PORT = Number(process.env.PORT ?? 3001);
 
@@ -158,19 +158,37 @@ io.on('connection', (rawSocket) => {
     socket.data.roomCode = null;
     socket.data.playerId = null;
     for (const p of c.room.players) {
-      if (p.socketId) io.to(p.socketId).emit('opponentLeft');
+      if (p.socketId) {
+        io.to(p.socketId).emit('voiceSignal', c.playerId, { kind: 'bye' });
+        io.to(p.socketId).emit('opponentLeft');
+      }
     }
     broadcastState(c.room);
     cb({ ok: true });
   });
 
-  socket.on('voiceCreds', (cb) => {
+  // Signaling WebRTC peer-to-peer — server hanya meneruskan offer/answer/candidate.
+  socket.on('voiceSignal', (signal) => {
     const c = ctx(socket);
-    if (!c) return cb({ ok: false, error: 'Belum join room' });
-    if (!trtcConfigured())
-      return cb({ ok: false, error: 'Voice belum dikonfigurasi di server' });
-    const { sdkAppId, userSig } = trtcCredentials(c.playerId);
-    cb({ ok: true, sdkAppId, userSig, userId: c.playerId, strRoomId: c.room.code });
+    if (!c || !signal || typeof signal !== 'object') return;
+    const kind = signal.kind;
+    if (kind !== 'offer' && kind !== 'answer' && kind !== 'candidate' && kind !== 'bye') return;
+    // batasi ukuran payload supaya tidak dipakai sebagai jalur spam
+    if (typeof signal.sdp === 'string' && signal.sdp.length > 20_000) return;
+    if (
+      signal.candidate &&
+      typeof signal.candidate.candidate === 'string' &&
+      signal.candidate.candidate.length > 2_000
+    )
+      return;
+    const out: VoiceSignal = {
+      kind,
+      sdp: typeof signal.sdp === 'string' ? signal.sdp : undefined,
+      candidate: signal.candidate ?? undefined,
+    };
+    for (const p of c.room.players) {
+      if (p.id !== c.playerId && p.socketId) io.to(p.socketId).emit('voiceSignal', c.playerId, out);
+    }
   });
 
   socket.on('disconnect', () => {
@@ -179,7 +197,10 @@ io.on('connection', (rawSocket) => {
     const me = c.room.players.find((p) => p.id === c.playerId);
     if (me && me.socketId === socket.id) me.socketId = null;
     for (const p of c.room.players) {
-      if (p.id !== c.playerId && p.socketId) io.to(p.socketId).emit('opponentLeft');
+      if (p.id !== c.playerId && p.socketId) {
+        io.to(p.socketId).emit('voiceSignal', c.playerId, { kind: 'bye' });
+        io.to(p.socketId).emit('opponentLeft');
+      }
     }
     deleteRoomIfEmpty(c.room);
   });

@@ -7,9 +7,5 @@ services:
     startCommand: npm start -w server
     healthCheckPath: /health
     envVars:
-      - key: TRTC_SDKAPPID
-        sync: false
-      - key: TRTC_SECRETKEY
-        sync: false
       - key: CORS_ORIGIN
         sync: false

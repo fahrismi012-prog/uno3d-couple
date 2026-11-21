@@ -1,6 +1,19 @@
 import { VoiceState } from './useVoice';
 
 export default function VoiceButton({ voice }: { voice: VoiceState }) {
+  if (voice.status === 'incoming') {
+    return (
+      <span className="voice">
+        <span>📞 Pasanganmu menelepon</span>
+        <button className="btn-voice" onClick={voice.accept} title="Terima voice call">
+          Terima
+        </button>
+        <button className="btn-voice" onClick={voice.decline} title="Tolak voice call">
+          Tolak
+        </button>
+      </span>
+    );
+  }
   if (voice.status === 'off' || voice.status === 'error') {
     return (
       <span className="voice">
@@ -12,7 +25,14 @@ export default function VoiceButton({ voice }: { voice: VoiceState }) {
     );
   }
   if (voice.status === 'connecting') {
-    return <span className="voice">📞 menghubungkan…</span>;
+    return (
+      <span className="voice">
+        📞 menghubungkan…
+        <button className="btn-voice" onClick={voice.leave} title="Batalkan">
+          Batal
+        </button>
+      </span>
+    );
   }
   return (
     <span className="voice">

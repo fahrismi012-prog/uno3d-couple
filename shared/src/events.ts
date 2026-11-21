@@ -40,13 +40,18 @@ export interface ActionAck {
   error?: string;
 }
 
-export interface VoiceCredsAck {
-  ok: boolean;
-  error?: string;
-  sdkAppId?: number;
-  userSig?: string;
-  userId?: string;
-  strRoomId?: string;
+export type VoiceSignalKind = 'offer' | 'answer' | 'candidate' | 'bye';
+
+/** Pesan signaling WebRTC yang diteruskan server ke lawan (tanpa layanan pihak ketiga). */
+export interface VoiceSignal {
+  kind: VoiceSignalKind;
+  sdp?: string;
+  candidate?: {
+    candidate?: string;
+    sdpMid?: string | null;
+    sdpMLineIndex?: number | null;
+    usernameFragment?: string | null;
+  } | null;
 }
 
 export interface ClientToServerEvents {
@@ -64,7 +69,7 @@ export interface ClientToServerEvents {
   sayUno: (cb: (ack: ActionAck) => void) => void;
   catchUno: (cb: (ack: ActionAck) => void) => void;
   chat: (text: string) => void;
-  voiceCreds: (cb: (ack: VoiceCredsAck) => void) => void;
+  voiceSignal: (signal: VoiceSignal) => void;
   leaveRoom: (cb: (ack: ActionAck) => void) => void;
 }
 
@@ -73,4 +78,5 @@ export interface ServerToClientEvents {
   chat: (msg: ChatMessage) => void;
   opponentLeft: () => void;
   opponentJoined: (nickname: string) => void;
+  voiceSignal: (from: string, signal: VoiceSignal) => void;
 }

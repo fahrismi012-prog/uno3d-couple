@@ -11,7 +11,7 @@ Game UNO 3D online realtime untuk 2 pemain (LDR), mobile-friendly, dengan chat &
   2. Main UNO realtime (aturan standar: skip, reverse, +2, wild, +4, teriak "UNO!")
   3. Meja 3D: kartu 3D, animasi tarik & lempar kartu
   4. Text chat in-game (+ emoji / quick reactions ❤️😆😡)
-  5. Voice call selama main (Tencent RTC / TRTC)
+  5. Voice call selama main (WebRTC peer-to-peer, gratis)
 - **Fitur nanti (v2)**: skin kartu couple, skor & riwayat menang, avatar 3D, background musik, mode "kalau kalah harus…" (truth or dare).
 
 ## 2. Teknologi (semua free tier)
@@ -22,7 +22,7 @@ Game UNO 3D online realtime untuk 2 pemain (LDR), mobile-friendly, dengan chat &
 | Frontend | **React + Vite + TypeScript** | Cepat, cocok dengan R3F |
 | Realtime game | **Socket.IO** (WebSocket) | Simple, reconnect otomatis (penting di jaringan HP) |
 | Backend | **Node.js + Express + Socket.IO** | Satu bahasa (TS) frontend-backend |
-| Voice/Video | **Tencent RTC (TRTC)** | Free tier 10.000 menit/bulan — lebih dari cukup untuk 2 orang |
+| Voice | **WebRTC peer-to-peer** + STUN/TURN gratis | Tanpa layanan pihak ketiga, tanpa batas menit, latensi paling rendah untuk 2 orang |
 | Text chat | Lewat Socket.IO saja | Gratis, tidak perlu layanan tambahan (Tencent IM opsional) |
 | Database | **Supabase (PostgreSQL)** free tier | Untuk akun sederhana, skor, riwayat. State game cukup di memory server |
 | Hosting frontend | **Vercel** atau **Cloudflare Pages** | Gratis, CDN cepat |
@@ -42,19 +42,19 @@ Game UNO 3D online realtime untuk 2 pemain (LDR), mobile-friendly, dengan chat &
      │  - room manager                 │
      │  - UNO rules engine             │
      │  - chat relay                   │
-     │  - TRTC UserSig generator       │
+     │  - WebRTC signaling relay       │
      └───────────────┬─────────────────┘
                      │ (hanya untuk skor/akun)
               [Supabase Postgres]
 
-Voice: HP ↔ Tencent TRTC cloud ↔ HP  (peer audio, terpisah dari game server)
+Voice: HP ↔ HP langsung via WebRTC  (audio peer-to-peer; server hanya signaling)
 ```
 
 Prinsip penting:
 - **Server authoritative**: dek kartu, giliran, validasi kartu semua di server → tidak bisa curang / desync.
 - Client hanya mengirim intent (`playCard`, `drawCard`, `sayUno`) dan me-render state yang dikirim server.
 - **Reconnect**: kalau sinyal HP putus, pemain bisa join lagi ke room dan state dikirim ulang.
-- **TRTC UserSig** harus digenerate di server (SDKSecretKey jangan pernah di frontend).
+- **Signaling WebRTC** (offer/answer/ICE) lewat Socket.IO; audio tetap peer-to-peer.
 
 ## 4. Database (Supabase) — skema minimal
 
@@ -88,8 +88,8 @@ uno3d-couple/
 │   │   ├── components/
 │   │   │   ├── game/            # Table3D, Card3D, Hand, DrawPile, ColorPicker
 │   │   │   ├── ui/              # HUD, ChatDrawer, UnoButton, Lobby
-│   │   │   └── voice/           # TRTC join/leave, mute controls
-│   │   ├── hooks/               # useSocket, useGameState, useTRTC
+│   │   │   └── voice/           # WebRTC join/leave, mute controls
+│   │   ├── hooks/               # useSocket, useGameState, useVoice
 │   │   ├── scenes/              # LobbyScene, GameScene
 │   │   ├── store/               # zustand state
 │   │   ├── types/               # shared types (kartu, event)
@@ -99,11 +99,10 @@ uno3d-couple/
 │   ├── src/
 │   │   ├── game/                # deck.ts, rules.ts, gameEngine.ts
 │   │   ├── rooms/               # roomManager.ts
-│   │   ├── sockets/             # event handlers
-│   │   ├── trtc/                # userSig generator (secret di env)
+│   │   ├── sockets/             # event handlers + relay signaling WebRTC
 │   │   ├── db/                  # supabase client, queries
 │   │   └── index.ts
-│   ├── .env.example             # TRTC_SDKAPPID, TRTC_SECRETKEY, SUPABASE_URL...
+│   ├── .env.example             # CORS_ORIGIN, PORT
 │   └── package.json
 ├── shared/                      # tipe & konstanta dipakai client+server
 │   └── src/                     # cardTypes.ts, events.ts, gameState.ts
@@ -115,13 +114,13 @@ uno3d-couple/
 1. **Fase 1 — Core logic (1–2 hari)**: rules engine UNO di `shared`/`server` + unit test. Belum ada 3D.
 2. **Fase 2 — Realtime (1–2 hari)**: Socket.IO room, join dengan kode, main UNO versi UI 2D sederhana dulu.
 3. **Fase 3 — 3D (3–5 hari)**: meja & kartu 3D dengan R3F, animasi, mobile landscape layout.
-4. **Fase 4 — Chat & Voice (1–2 hari)**: chat via socket, integrasi TRTC (daftar Tencent Cloud, ambil SDKAppID, UserSig dari server).
+4. **Fase 4 — Chat & Voice (1–2 hari)**: chat via socket, voice WebRTC peer-to-peer dengan signaling lewat socket (tanpa layanan pihak ketiga).
 5. **Fase 5 — Deploy (1 hari)**: client → Vercel, server → Fly.io/Render, Supabase setup, tes HP berdua.
 6. **Fase 6 — Polish**: PWA, suara, skin couple, skor.
 
 ## 8. Yang perlu disiapkan (akun gratis)
 
-- [ ] Akun Tencent Cloud → aktifkan TRTC, catat SDKAppID & SecretKey
+- [x] Voice WebRTC — tidak perlu akun (STUN/TURN gratis)
 - [ ] Akun Supabase → buat project, catat URL & anon key
 - [ ] Akun Vercel / Cloudflare Pages
 - [ ] Akun Fly.io / Render untuk backend
